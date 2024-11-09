@@ -1,0 +1,12 @@
+﻿@model mvc_app.Models.Customer
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
+<h2>Customer Details</h2>
+
+<div class="card">
+    <div class="card-body">
+        <h5 class="card-title">@Model.FirstName @Model.LastName</h5>
+        <p class="card-text">Email: @Model.Email</p>
+        <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+    </div>
+</div>
