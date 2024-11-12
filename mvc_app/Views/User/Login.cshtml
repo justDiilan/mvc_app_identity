@@ -1,7 +1,7 @@
 ﻿@* @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers *@
 
-<h2>Auth</h2>
-<form asp-action="Auth" method="post">
+<h2>Log In</h2>
+<form asp-action="Login" method="post">
     <div class="form-group">
         <label asp-for="email">Email:</label>
         <input asp-for="email" type="email" name="email" class="form-control" required />
@@ -13,5 +13,5 @@
         <span asp-validation-for="password" class="text-danger"></span>
     </div>
     <br />
-    <button type="submit" class="btn btn-primary" value="auth">Auth</button>
+    <button type="submit" class="btn btn-primary" value="login">Log In</button>
 </form>

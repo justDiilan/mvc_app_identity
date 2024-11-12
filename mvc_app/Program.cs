@@ -11,7 +11,9 @@ namespace mvc_app
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            builder.Services.AddSingleton<IServiceCustomers, ServiceCustomer>();
+            builder.Services.AddControllersWithViews();
+            //Add service customer to DI container
+            builder.Services.AddScoped<IServiceCustomers, ServiceCustomer>();
             builder.Services.AddDbContext<CustomerContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
@@ -29,9 +31,19 @@ namespace mvc_app
                 options.Password.RequireLowercase = false;
                 options.Password.RequiredUniqueChars = 0;
                 options.Password.RequireNonAlphanumeric = false;
-            }).AddEntityFrameworkStores<UserContext>();
+            }).AddRoles<IdentityRole>()
+              .AddEntityFrameworkStores<UserContext>();
 
-            builder.Services.AddControllersWithViews();
+            builder.Services.ConfigureApplicationCookie(options =>
+            {
+                options.LoginPath = "/User/Login";
+                options.AccessDeniedPath = "/User/AccessDenied";
+            });
+
+            builder.Services.AddAuthorization(options =>
+            {
+                options.AddPolicy("admin", policy => policy.RequireRole("admin"));
+            });
 
             var app = builder.Build();
 
@@ -47,8 +59,8 @@ namespace mvc_app
             app.UseRouting();
 
             //Identity
-            app.UseAuthorization();
             app.UseAuthentication();
+            app.UseAuthorization();
 
             app.MapControllerRoute(
                 name: "default",

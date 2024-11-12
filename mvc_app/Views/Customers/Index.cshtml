@@ -1,37 +1,51 @@
 ﻿@model IEnumerable<mvc_app.Models.Customer>
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+
 @if (User.Identity.IsAuthenticated)
 {
-    <h2>Customers</h2>
-    <a href="/User/Logout" class="btn btn-primary mb-3">Logout</a>
-    <table class="table table-striped">
-        <tr>
-            <th>Id</th>
-            <th>First Name</th>
-            <th>Last Name</th>
-            <th>Email</th>
-            <th>Actions</th>
-        </tr>
-        @foreach (var customer in Model)
+    <div class="container mt-4">
+        <h2 class="mb-4">Customers</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                    <th>Email</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var customer in Model)
+                {
+                    <tr>
+                        <td>@customer.Id</td>
+                        <td>@customer.FirstName</td>
+                        <td>@customer.LastName</td>
+                        <td>@customer.Email</td>
+                        <td>
+                            <a asp-action="Read" asp-route-id="@customer.Id" class="btn btn-info btn-sm">Details</a>
+                            @if (User.IsInRole("admin"))
+                            {
+                                <a asp-action="Update" asp-route-id="@customer.Id" class="btn btn-warning btn-sm">Edit</a>
+                                <a asp-action="Delete" asp-route-id="@customer.Id" class="btn btn-danger btn-sm">Delete</a>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        @if (User.IsInRole("admin"))
         {
-            <tr>
-                <td>@customer.Id</td>
-                <td>@customer.FirstName</td>
-                <td>@customer.LastName</td>
-                <td>@customer.Email</td>
-                <td>
-                    <a asp-action="Details" asp-route-id="@customer.Id" class="btn btn-info btn-sm">Details</a> |
-                    <a asp-action="Edit" asp-route-id="@customer.Id" class="btn btn-warning btn-sm">Edit</a> |
-                    <a asp-action="Delete" asp-route-id="@customer.Id" class="btn btn-danger btn-sm">Delete</a>
-                </td>
-            </tr>
+            <a asp-action="Create" class="btn btn-primary mt-3">Create New Customer</a>
         }
-    </table>
-    <a asp-action="Create" class="btn btn-primary mb-10">Create New Customer</a>
+    </div>
 }
 else
 {
-    <h1>You must need authorized</h1>
-    <a href="User/Register" class="btn btn-primary">Register</a>
-    <a href="User/Auth" class="btn btn-primary">Authorization</a>
+    <div class="container mt-4">
+        <h1>You must be authorized</h1>
+        <a asp-action="Register" asp-controller="User" class="btn btn-primary mb-3">Register</a>
+        <a asp-action="Login" asp-controller="User" class="btn btn-primary mb-3">Log In</a>
+    </div>
 }

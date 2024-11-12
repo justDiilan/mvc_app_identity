@@ -5,67 +5,75 @@ namespace mvc_app.Services
 {
     public interface IServiceCustomers
     {
-        public CustomerContext? _customerContext { get; set; }
-        public IEnumerable<Customer> Index();
-        public Customer Create(Customer customer);
-        public Customer Details(int id);
-        public Customer Edit(int id, Customer customer);
-        public bool Delete(int id);
+        public Task<IEnumerable<Customer>> IndexAsync();
+        public Task<Customer?> CreateAsync(Customer? customer);
+        public Task<Customer?> ReadAsync(int id);
+        public Task<Customer?> UpdateAsync(int id, Customer? customer);
+        public Task<bool> DeleteAsync(int id);
     }
     public class ServiceCustomer : IServiceCustomers
     {
-        public CustomerContext? _customerContext { get; set; }
-
-        public Customer Create(Customer customer)
+        private readonly CustomerContext? _customerContext;
+        private readonly ILogger<ServiceCustomer>? _logger;
+        public ServiceCustomer(CustomerContext? customerContext, ILogger<ServiceCustomer>? logger)
         {
-            _customerContext?.Customers.Add(customer);
-            _customerContext?.SaveChanges();
-            return customer;
+            _customerContext = customerContext;
+            _logger = logger;
         }
 
-        public bool Delete(int id)
+        async Task<IEnumerable<Customer>> IServiceCustomers.IndexAsync()
         {
-            var customer = _customerContext?.Customers.Find(id);
-            if (customer == null) return false;
-            _customerContext?.Customers.Remove(customer);
-            _customerContext?.SaveChanges();
-            return true;
+            return await _customerContext.Customers.ToListAsync();
         }
 
-        public Customer? Details(int id)
+        public async Task<Customer?> CreateAsync(Customer? customer)
         {
-            Customer? customer = _customerContext?.Customers
-                .FirstOrDefault(c => c.Id == id);
-            return customer;
-        }
-
-        public Customer Edit(int id, Customer customer)
-        {
-            if (id != customer.Id) return null;
-            else
+            if (customer == null)
             {
-                try
-                {
-                    _customerContext?.Customers.Update(customer);
-                    _customerContext?.SaveChanges();
-                    return customer;
-                }
-                catch (DbUpdateConcurrencyException ex)
-                {
-                    Console.WriteLine(ex.StackTrace);
-                    return null;
-                }
+                _logger?.LogWarning("Attempted to create a null customer");
+                return null;
+            }
+            await _customerContext.Customers.AddAsync(customer);
+            await _customerContext.SaveChangesAsync();
+            return customer;
+        }
+
+        public async Task<Customer?> ReadAsync(int id)
+        {
+            return await _customerContext.Customers.FindAsync(id);
+        }
+
+        public async Task<Customer?> UpdateAsync(int id, Customer? customer)
+        {
+            if (id != customer.Id || id == null)
+            {
+                _logger.LogWarning("Attempted to update a customer with mismatched ID");
+                return null;
+            }
+            try
+            {
+                _customerContext.Customers.Update(customer);
+                await _customerContext.SaveChangesAsync();
+                return customer;
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                _logger.LogError(ex.Message);
+                return null;
             }
         }
 
-        public Customer Edit(Customer customer)
+        public async Task<bool> DeleteAsync(int id)
         {
-            throw new NotImplementedException();
-        }
-
-        public IEnumerable<Customer>? Index()
-        {
-            return _customerContext?.Customers.ToList();
+            var customer = await _customerContext.Customers.FindAsync(id);
+            if (customer == null)
+            {
+                _logger?.LogWarning("Attempted to delete a non-existent customer");
+                return false;
+            }
+            _customerContext.Customers.Remove(customer);
+            await _customerContext.SaveChangesAsync();
+            return true;
         }
     }
 }

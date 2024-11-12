@@ -1,0 +1,17 @@
+﻿@* @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers *@
+
+<h2>Assign Role</h2>
+<form asp-action="AssignRole" method="post">
+    <div class="form-group">
+        <label asp-for="userId">User ID:</label>
+        <input asp-for="userId" type="text" name="userId" class="form-control" required />
+        <span asp-validation-for="userId" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label asp-for="roleName">Role Name:</label>
+        <input asp-for="roleName" type="text" name="roleName" class="form-control" required />
+        <span asp-validation-for="roleName" class="text-danger"></span>
+    </div>
+    <br />
+    <button type="submit" class="btn btn-primary" value="assignrole">Assign Role</button>
+</form>

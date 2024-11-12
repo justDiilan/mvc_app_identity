@@ -1,27 +1,27 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace mvc_app.Controllers
 {
-    public class UserController : Controller
+    [Route("api/[controller]")]
+    [ApiController]
+    public class APIUserController : ControllerBase
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        public UserController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, RoleManager<IdentityRole> roleManager)
+        public APIUserController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, RoleManager<IdentityRole> roleManager)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
         }
-
-        [HttpGet]
-        public IActionResult Register() => View();
         [HttpPost]
         public async Task<IActionResult> Register(string email, string password)
         {
-            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password)) 
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
                 return BadRequest("Email and password required");
             var user = new IdentityUser
             {
@@ -31,15 +31,13 @@ namespace mvc_app.Controllers
             };
             var result = await _userManager.CreateAsync(user, password);
             if (result.Succeeded) return RedirectToAction("Index", "Customers");
-            return BadRequest(Json(result.Errors));
+            return BadRequest("Invalid registration attempt");
         }
-        [HttpGet]
-        public IActionResult Login() => View();
-        
+
         [HttpPost]
         public async Task<IActionResult> Login(string email, string password)
         {
-            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password)) 
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(password))
                 return BadRequest("Email and password required");
             var result = await _signInManager.PasswordSignInAsync(email, password, false, false);
             if (result.Succeeded) return RedirectToAction("Index", "Customers");
@@ -48,8 +46,6 @@ namespace mvc_app.Controllers
             if (result.RequiresTwoFactor) return BadRequest("Two factor authentication required");
             return BadRequest("Invalid login attempt");
         }
-        [HttpGet]
-        public ViewResult Logout() => View();
 
         [HttpPost]
         public async Task<IActionResult> LogoutConfirmed()
@@ -57,9 +53,6 @@ namespace mvc_app.Controllers
             await _signInManager.SignOutAsync();
             return RedirectToAction("Index", "Home");
         }
-        [Authorize(Roles = "admin")]
-        [HttpGet]
-        public ViewResult CreateRole() => View();
         [Authorize(Roles = "admin")]
         [HttpPost]
         public async Task<IActionResult> CreateRole(string roleName)
@@ -70,11 +63,8 @@ namespace mvc_app.Controllers
             var role = new IdentityRole { Name = roleName };
             var result = await _roleManager.CreateAsync(role);
             if (result.Succeeded) return RedirectToAction("Index", "Home");
-            return BadRequest(Json(result.Errors));
+            return BadRequest("Invalid create role attempt");
         }
-        [Authorize(Roles = "admin")]
-        [HttpGet]
-        public ViewResult AssignRole() => View();
         [Authorize(Roles = "admin")]
         [HttpPost]
         public async Task<ActionResult> AssignRole(string userId, string roleName)
@@ -87,7 +77,7 @@ namespace mvc_app.Controllers
             if (!roleExisting) BadRequest($"Role name {roleName} not exists");
             var result = await _userManager.AddToRoleAsync(user, roleName);
             if (result.Succeeded) return RedirectToAction("Index", "Home");
-            return BadRequest(Json(result.Errors));
+            return BadRequest($"Invalid assign role {roleName} attempt for user {user}");
         }
     }
 }
