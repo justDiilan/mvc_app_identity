@@ -113,7 +113,7 @@ namespace mvc_app.Controllers
                     new Claim(ClaimTypes.Email, user.Email)
                 }),
                 //Expires = DateTime.UtcNow.AddMinutes(Convert.ToDouble(_configuration["Jwt:DurationInMinutes"])),
-                Expires = DateTime.UtcNow.AddMinutes(30),  // Токен истекает через 30 минут
+                Expires = DateTime.UtcNow.AddDays(30),  // Токен истекает через 30 минут
                 NotBefore = DateTime.UtcNow,
                 SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256),
                 Issuer = _configuration["Jwt:Issuer"],   // Добавлено
